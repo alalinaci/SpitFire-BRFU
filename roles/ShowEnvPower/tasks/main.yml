@@ -1,0 +1,46 @@
+---
+- name: Read in parse_genie role
+  include_role:
+   name: clay584.parse_genie
+
+- name: switching to admin mode
+  iosxr_command:
+   commands:
+    - admin
+- name: Run iosxr command
+  iosxr_command:
+   commands:
+    - show environment power
+  register: cli_output
+- name: switching to admin mode
+  iosxr_command:
+   commands:
+    - exit
+#   - debug:
+#     var: cli_output.stdout_lines[0]
+
+- name: Parsing output with custom genie parser
+  set_fact:
+   parsed_output: "{{ cli_output['stdout'][0] | parse_genie(command= 'show environment power', os='iosxr')}}"
+#   - debug: var=parsed_output
+#  Checking for te comdition that Power Module status should be OK. If not check fails.
+- name: Checking
+  set_fact:
+   check_env: |
+    {% set check_env = {} %}
+    {% set ns=namespace(s='Passed', status_l=[]) %}
+    {% for n in parsed_output['power_module'] %}
+    {% if parsed_output['power_module'][n]['status'].strip() != 'OK'  %}
+    {% set ns.s = 'Failed' %}
+    {% endif %}
+    {% endfor %}
+    {% set _=check_env.update({'status':ns.s})%}
+    {{ check_env }}
+   run_once: yes
+#   - debug: var=check_env
+
+- lineinfile:
+   line: show environment power[+]-------->"{{ check_env.status }}"
+   path: "{{ file }}"
+
+

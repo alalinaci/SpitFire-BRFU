@@ -1,0 +1,51 @@
+---
+- name: Read in parse_genie role
+  include_role:
+   name: clay584.parse_genie
+
+- name: run iosxr command
+  iosxr_command:
+   commands:
+    - show controllers fabric plane all
+  register: cli_output
+  ignore_errors: yes
+#   - debug:
+#     var: cli_output.stdout_lines[0]
+
+- name: Parsing output using custom genie parser
+  set_fact:
+   parsed_output: "{{ cli_output['stdout'][0] | parse_genie(command= 'show controllers fabric plane all', os='iosxr')}}"
+  ignore_errors: yes
+#   - name: Printing the parsed output
+#   - debug: var=parsed_output
+
+# Checking for the condition that The "Admin State" and "Plane State" should be UP UP.
+# Else check 'Fails'
+- name: Checking
+  set_fact:
+   check_: |
+    {% set check_= {} %}
+    {% set ns=namespace(s='Passed', status_l=[]) %}
+    {% for p in parsed_output['plane_id'] %}
+    {% if (( parsed_output['plane_id'][p]['admin_state'] not in ['01','UP'] ) or ( parsed_output['plane_id'][p]['plane_state']  not in ['01','UP'] ))  %}
+    {% set ns.s='Failed' %}
+    {% else %}
+    {% set ns.s='Passed' %}
+    {% endif %}
+    {% endfor %}
+    {% set _= check_.update({"status":ns.s}) %}
+    {{ check_ }}
+  ignore_errors: yes
+  register: result_plane
+#   - debug: var=check_
+
+- set_fact: check_plane="{{result_plane['ansible_facts']['check_']['status']}}"
+  when: result_plane[ "failed"]== false
+- set_fact: check_plane="Failed"
+  when: result_plane[ "failed"]== true
+
+- lineinfile:
+   line: show controllers fabric plane all[+]---->"{{ check_plane }}"
+   path: "{{ file }}"     
+
+   
