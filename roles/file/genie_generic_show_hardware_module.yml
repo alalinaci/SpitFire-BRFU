@@ -1,0 +1,49 @@
+---
+parse_genie:
+ ios:
+  "show hw-module fpd":
+   headers:
+    - - Location
+      - Card type
+      - HWver
+      - FPD device
+      - ATR
+      - Status
+      - Running
+      - Programd
+      - Reload Loc
+    - - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+   index:
+    - 3
+ iosxe:
+  "show hw-module fpd":
+   headers:
+    - - Location
+      - Card type
+      - HWver
+      - FPD device
+      - ATR
+      - Status
+      - Running
+      - Programd
+      - Reload Loc
+    - - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+      - ''
+   index:
+    - 3
+

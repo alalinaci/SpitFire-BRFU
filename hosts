@@ -1,0 +1,4 @@
+[lab]
+#R6-P1-ASR9912 ansible_host=10.76.5.6 ansible_network_os=iosxr ansible_user=cisco ansible_ssh_pass=cisco@123
+SPITFIRE-8201 ansible_host=10.82.84.138 ansible_network_os=iosxr ansible_user=demigod ansible_ssh_pass=multiverse
+

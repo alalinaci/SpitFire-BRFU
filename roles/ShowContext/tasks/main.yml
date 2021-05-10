@@ -1,0 +1,62 @@
+--- 
+   - name: Run show command
+     iosxr_command:
+      commands:
+       - show context location all
+     register: cli_output
+   - set_fact:
+      node_context: |
+       {% set node_context = [] %}
+       {% for p in cli_output.stdout_lines[0] %}
+       {% if (p.startswith('-') != true) %}
+       {% if ((p != "") ) %}
+       {% set _ = node_context.append(p) %}
+       {% endif %}
+       {% endif %}
+       {% endfor %}
+       {{ node_context }}
+      run_once: yes
+#   - debug: var=node_context
+# String slicing to extract 'no context'
+   - set_fact:
+      node_: |
+       {% set node_={} %}
+       {% set ns=namespace(node_var='defaultnode') %}
+       {% for p in node_context %}
+       {% if (p.startswith("node")) %}
+       {% set ns.node_var=p[(p.index('e')+2):].lstrip() %}
+       {% endif %}
+       {% if p.startswith('No')%}
+       {% set _=node_.update({ns.node_var:{'context':'no'}}) %}
+       {% else %}
+       {% set _=node_.update({ns.node_var:{'context':'yes'}}) %}
+       {% endif %}
+       {% endfor %}
+       {{ node_ }}
+      run_once: yes
+#   - debug: var=node_
+   - name: Save snapshot to file {{ file }}
+     copy:
+      content: "{{ node_ }}"
+      dest: "{{ show_context_json_output }}"
+   - name: Reading from json
+     shell: cat "{{ show_context_json_output }}"
+     register: result
+   - name: Save json data to a variable
+     set_fact:
+      json_data: "{{ result.stdout | from_json }}"
+   - name: Json Query
+     set_fact:
+      - check_context: "{{ json_data | json_query(jmesquery) }}"
+      - status='Failed'
+     vars:
+      jmesquery: json[?*.context=='NO']
+     set_fact: status='Passed' 
+   - name: print status
+     debug: msg="{{ status }}" 
+   - lineinfile:
+      line: show context[+]------------------>"{{ status }}"
+      path: "{{ file }}"
+      
+   
+

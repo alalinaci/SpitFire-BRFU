@@ -1,0 +1,34 @@
+---
+parse_genie:
+ ios:
+  "show media":
+   headers:
+    - - Partition
+      - Size
+      - Used 
+      - Percent
+      - Avail
+    - - ''
+      - ''
+      - ''
+      - ''
+      - ''
+   index:
+    - 0
+ iosxe:
+  "show media":
+   headers:
+    - - Partition
+      - Size
+      - Used
+      - Percent
+      - Avail
+    - - ''
+      - ''
+      - ''
+      - ''
+      - ''
+   index:
+    - 0
+
+

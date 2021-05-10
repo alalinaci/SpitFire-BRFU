@@ -1,0 +1,55 @@
+---
+   - name: -----Running command check-----
+     iosxr_command:
+      commands:
+       - show platform
+     register: cli_output
+   - set_fact:
+      node_plat: |
+       {% set node_plat = [] %}
+       {% for p in cli_output.stdout_lines[0] %}
+       {% if (p.endswith('NSHUT')) %}
+       {% set _ = node_plat.append(p) %}
+       {% endif %}
+       {% endfor %}
+       {{ node_plat }}
+      run_once: yes
+#   - debug: var=node_plat
+# String slicing to find out the state
+   - set_fact:
+      node_: |
+       {% set node_={} %}
+       {% set ns=namespace(node_var='defaultnode') %}
+       {% for p in node_plat %}
+       {% set ns.node_var=p[0:11] %}
+       {% if (p.endswith('NSHUT')) %}
+       {% if p[43] == 'O' %}
+       {% set _=node_.update({ns.node_var:{'state':'OPERATIONAL'}}) %}
+       {% elif p[43] == 'I' %}
+       {% set _=node_.update({ns.node_var:{'state':'IOS XR RUN'}}) %}
+       {% else %}
+       {% set _=node_.update({ns.node_var:{'state':p[43:56]}}) %}
+       {% endif %}
+       {% endif %}
+       {% endfor %}
+       {{ node_ }}
+      run_once: yes
+ #  - debug: var=node_
+   - name: final test result check
+     set_fact: 
+      check_: |
+       {% set check_ = {} %}
+       {% set ns=namespace(s='Failed') %}
+       {% for n in node_ %}
+       {% if (node_[n]['state'] == 'OPERATIONAL' or node_[n]['state'] == 'IOS XR RUN') %}
+       {% set ns.s = 'Passed' %}
+       {% endif %}
+       {% endfor %}
+       {% set _=check_.update({'status':ns.s})%}
+       {{ check_ }}
+      run_once: yes
+   - debug: var=check_
+   - lineinfile:
+      line: show platform[+]----------------->"{{ check_.status }}"
+      path: "{{ file }}"
+

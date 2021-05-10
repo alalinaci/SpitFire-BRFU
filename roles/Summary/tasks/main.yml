@@ -1,0 +1,11 @@
+---
+- name: Summary
+  shell: 
+   cat "{{ file }}"
+  register: cli_output
+
+- debug: var=cli_output.stdout_lines
+#deleting contents from this scan
+- name: Getting the file ready for the next scan 
+  shell: |
+   : > "{{ file }}"

@@ -1,0 +1,27 @@
+---
+- name: Final Output
+  hosts: all
+  gather_facts: no
+  connection: network_cli
+  vars:
+   - file: "./roles/file/output.txt"
+   - show_context_json_output: "./roles/file/parsed_output.json"
+   - media: "./roles/file/genie_generic_show_media.yml"
+   - hardware: "./roles/file/genie_generic_show_hardware_module.yml"
+  roles:
+   - role: pb_hw
+     tags: pb_hw
+     throttle: 1
+   - role: ShowPlat
+     tags: ShowPlat
+     throttle: 1
+   - role: ShowContext
+     tags: ShowContext
+     throttle: 1
+   - role: pb_sh_media
+     tags: pb_sh_media
+     throttle: 1
+   - role: Summary
+     tags: Summary
+     throttle: 1 
+ 

@@ -1,0 +1,36 @@
+---
+- name: iosxr command
+  iosxr_command:
+   commands:
+    - show hw-module fpd
+  register: out_iosxr
+#- debug:
+#   msg: "{{ out_iosxr.stdout[0] }}"
+- name: Parser genie role include
+  include_role:
+   name: clay584.parse_genie
+- name: Include Vars
+  include_vars:
+   file: "{{ hardware }}"
+   name: parse_genie
+- name: Test Genie Filter for generic tabular data
+  set_fact:
+   cli_output: "{{ out_iosxr.stdout[0] | parse_genie(command='show hw-module fpd', os='ios', generic_tabular=True, generic_tabular_metadata=parse_genie) }}"
+#- debug: var=cli_output
+- name: checking
+  set_fact:
+   check_: |
+    {% set check_= {} %}
+    {% set ns=namespace(s='Passed') %}
+    {% for n in cli_output %}
+    {% if cli_output[n]['Status '] == 'NEED UPGD' %}
+    {% set ns.s='Failed' %}
+    {% endif %}
+    {% endfor %}
+    {% set _=check_.update({'Result':ns.s}) %}
+    {{ check_ }}
+   run_once: yes
+#- debug: var=check_ 
+- lineinfile:
+   line: show hardware module[+]---------->"{{ check_.Result }}"
+   path: "{{ file }}"   

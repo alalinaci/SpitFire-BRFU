@@ -1,0 +1,41 @@
+---
+- name: iosxr command
+  iosxr_command:
+   commands:
+    - show media  
+  register: out_iosxr
+#- debug:
+#   msg: "{{ out_iosxr.stdout[0] }}"
+- name: Parser genie role include
+  include_role:
+   name: clay584.parse_genie
+- name: Include Vars
+  include_vars:
+   file: "{{ media }}"
+   name: parse_genie
+- name: Test Genie Filter for generic tabular data
+  set_fact:
+   cli_output: "{{ out_iosxr.stdout[0] | parse_genie(command='show media', os='ios', generic_tabular=True, generic_tabular_metadata=parse_genie) }}"
+#- debug: var=cli_output
+# Checking for the condition that percent is less than 75
+- name: Checking 
+  set_fact:
+   check_: |
+    {% set check_= {} %}
+    {% set ns=namespace(pc=0,s='?') %}
+    {% for p in cli_output %}
+    {% set ns.pc=(cli_output[p]['Percent ']) %}
+    {% set ns.pc= ns.pc[:(ns.pc.find('%'))]| int %}
+    {% if ns.pc <= 75 %}
+    {% set ns.s='Passed' %}
+    {% else %}
+    {% set ns.s = 'Failed' %}
+    {% endif %}
+    {% endfor %}
+    {% set _=check_.update({'status': ns.s}) %}
+    {{ check_ }}
+- debug: var=check_
+- lineinfile:
+   line: show media[+]-------------------->"{{ check_.status }}"
+   path: "{{ file }}"
+
