@@ -1,0 +1,53 @@
+---
+- name: Read in parse_genie role
+  include_role:
+   name: clay584.parse_genie
+
+- name: run iosxr command
+  iosxr_command:
+   commands:
+    - show filesystem
+  register: cli_output
+
+#   - debug:
+#     var: cli_output.stdout_lines[0]
+
+- name: Parsing output with custom genie parser
+  set_fact:
+   parsed_output: "{{ cli_output['stdout'][0] | parse_genie(command= 'show filesystem', os='iosxr')}}"
+
+#   - debug: var=parsed_output
+
+# Checking for te comdition that
+# for disk0:|hardisk: | /misc/config 'Free Space' on disk should be >= 25% of the 'Size' of the disk. Else check fails
+- name: Checking
+  set_fact:
+   check_filesys: |
+    {% set check_filesys= {} %}
+    {% set ns=namespace(s='Fail', size_var=10,free_var=10, act_pc=0,status_l=[] ) %}
+    {% for p in parsed_output["prefixes"] %}
+    {% set ns.size_var= parsed_output["prefixes"][p]['size'] | int %}
+    {% set ns.free_var= parsed_output["prefixes"][p]['free'] | int %}
+    {% if not ns.size_var == 0 %}
+    {% set ns.act_pc= ((ns.free_var/ns.size_var)*100) | round %}
+    {% else %}
+    {% set ns.act_pc = 0 %}
+    {% endif %}
+    {% if ns.act_pc >= 25 %}
+    {% set _= ns.status_l.append('Pass') %}
+    {% else %}
+    {% set _=ns.status_l.append('Fail') %}
+    {% endif %}
+    {% endfor %}
+    {% if 'Pass' in ns.status_l %}
+    {% set _=check_filesys.update({'status':'Passed'}) %}
+    {% else %}
+    {% set _= check_filesys.update({'status':'Failed'}) %}
+    {% endif %}
+    {{ check_filesys }}
+
+- lineinfile:
+   line: show filesystem[+]--------------->"{{ check_filesys.status }}"
+   path: "{{ file }}"
+
+ 
