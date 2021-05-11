@@ -8,6 +8,8 @@
    - show_context_json_output: "./roles/file/parsed_output.json"
    - media: "./roles/file/genie_generic_show_media.yml"
    - hardware: "./roles/file/genie_generic_show_hardware_module.yml"
+   - active: "./roles/file/golden_output_active.txt"
+   - commit: "./roles/file/golden_output_commit.txt"
   roles:
    - role: pb_hw
      tags: pb_hw
@@ -21,7 +23,16 @@
    - role: pb_sh_media
      tags: pb_sh_media
      throttle: 1
+   - role: pb_led
+     tags: pb_led
+     throttle: 1
+   - role: ShowInstallActive
+     tags: ShowInstallActive
+     throttle: 1
+   - role: ShowInstallCommit
+     tags: ShowInstallCommit
+     throttle: 1
    - role: Summary
      tags: Summary
      throttle: 1 
- 
+   

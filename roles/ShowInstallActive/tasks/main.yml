@@ -1,0 +1,89 @@
+---
+- name: run command
+  iosxr_command:
+   commands:
+    - show install active summary
+  register: output
+- set_fact: 
+   len_cli_output="{{ output.stdout_lines[0][:] | count }}"
+- name: parsing cli output
+  set_fact:
+   loop_cli: |
+    {% set loop_cli = [] %}
+    {% for i in range (6, len_cli_output | int) %}
+    {% for j in output.stdout_lines[0][i].split() %}
+    {% set _ = loop_cli.append(j) %}
+    {% endfor %}
+    {% endfor %}
+    {{ loop_cli }}
+   run_once: yes
+#- debug: var=loop_cli
+- set_fact:
+   len_cli_pair="{{ loop_cli | count }}"
+- name: pairing package name with version number in cli output
+  set_fact:
+   loop_cli_pair: |
+    {% set loop_cli_pair = [] %}
+    {% for i in range (0, len_cli_pair | int, 2) %}
+    {% set _ = loop_cli_pair.append(loop_cli[i]+"-"+loop_cli[i+1]) %}
+    {% endfor %}
+    {{ loop_cli_pair }}
+   run_once: yes
+#- debug: var=loop_cli_pair
+- name: reading golden output 
+  shell:
+   cat "{{ active }}"
+  register: golden_output
+- set_fact:
+   len_golden_output="{{ golden_output.stdout_lines | count }}"
+#- debug: var=len_golden
+- set_fact:
+   loop_golden: |
+    {% set loop_golden = [] %}
+    {% for k in range (0, len_golden_output | int ) %}
+    {% for l in golden_output.stdout_lines[k].split() %}
+    {% if l!='---' and l!='-' %}
+    {% set _ = loop_golden.append(l) %}
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {{ loop_golden }}
+   run_once: yes
+#  - debug: var=loop_golden
+- set_fact:
+   len_golden_pair="{{ loop_golden | count }}"
+- name: pairing package name with version number in golden output
+  set_fact:
+   loop_golden_pair: |
+    {% set loop_golden_pair = [] %}
+    {% for i in range (0, len_golden_pair | int, 2) %}
+    {% set _ = loop_golden_pair.append(loop_golden[i]+"-"+loop_golden[i+1]) %}
+    {% endfor %}
+    {{ loop_golden_pair }}
+   run_once: yes
+#- debug: var=loop_golden_pair
+- set_fact:
+   missing="{{ loop_cli_pair | reject('in', loop_golden_pair) }}"  
+- set_fact:
+   extra="{{ loop_golden_pair | reject('in', loop_cli_pair) }}"
+- debug: var=missing      
+- debug: var=extra
+- set_fact:
+   missed_len="{{ missing | count }}"
+   extra_len="{{ extra | count }}"
+- name: check
+  set_fact:
+   check_: |
+    {% set check_ = {} %}
+    {% set ns=namespace(s='Failed') %}
+    {% if missed_len == '0' and extra_len == '0' %}
+    {% set ns.s='Passed' %}
+    {% endif %}
+    {% set _=check_.update({'Result':ns.s}) %}
+    {{ check_ }}
+   run_once: yes
+- debug: var=check_
+- lineinfile:
+   line: show install active summary[+]--->"{{ check_.Result }}"
+   path: "{{ file }}"
+

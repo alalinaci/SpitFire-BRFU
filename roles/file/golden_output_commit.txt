@@ -1,0 +1,14 @@
+---
+- xr-8000-mcast 7.0.14v1.0.0-1
+- xr-8000-netflow 7.0.14v1.0.0-1
+- xr-bgp 7.0.14v1.0.0-1 
+- xr-ipsla 7.0.14v1.0.0-1
+- xr-is-is 7.0.14v1.0.0-1
+- xr-lldp 7.0.14v1.0.0-1
+- xr-mcast 7.0.14v1.0.0-1
+- xr-mpls-oam 7.0.14v1.0.0-1
+- xr-netflow 7.0.14v1.0.0-1
+- xr-ospf 7.0.14v1.0.0-1
+- xr-perfmgmt 7.0.14v1.0.0-1
+- xr-track 7.0.14v1.0.0-1
+

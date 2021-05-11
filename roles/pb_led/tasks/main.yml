@@ -1,0 +1,59 @@
+---
+    - name: show led
+      iosxr_command:
+       commands: show led
+      register: output
+  #  - debug: var=output.stdout_lines[0]
+    
+    - set_fact:
+            node_context: |
+                        {% set node_context = [] %}
+                        {% for p in output.stdout_lines[0] %}
+                        {% if (p.startswith('0/') or p.startswith(' ')) %}
+                        {% set _= node_context.append(p) %}
+                        {% endif %}
+                        {% endfor %}
+                        {{ node_context }}
+            run_once: yes
+   # - debug: var=node_context
+   # string slicing to capture the attributes  
+    - set_fact:
+            node_: |
+                 {% set node_ = {} %}
+                 {% set ns=namespace(node_var='defaultnode') %}
+                 {% for p in node_context %}
+                 {% if p.startswith("0/") %}
+                 {% set ns.node_var=p[0:].rstrip() %}
+                 {% endif %}
+                 {% if p.startswith(" ") %}
+                 {% if p[16]=='S' %}
+                 {% if p[58]=='G' %}
+                 {% set _=node_.update({ns.node_var:{'Color':'GREEN'}}) %}
+                 {% else %}
+                 {% set _=node_.update({ns.node_var:{'Color':p[58:70]}}) %}
+                 {% endif %}
+                 {% endif %}
+                 {% endif %}
+                 {% endfor %}
+                 {{ node_ }}
+            run_once: yes
+   # - debug: var=node_
+ 
+    - name: checking
+      set_fact:
+               check_: |
+                       {% set check_= {} %}
+                       {% set ns=namespace(s='Passed') %}
+                       {% for n in node_ %}
+                       {% if node_[n]['Color'] != 'GREEN' %}
+                       {% set ns.s='Failed' %}
+                       {% endif %}
+                       {% endfor %}
+                       {% set _=check_.update({'Result':ns.s}) %}
+                       {{ check_ }}
+               run_once: yes
+    - debug: var=check_
+                       
+    - lineinfile:
+       line: show led[+]---------------------->"{{ check_.Result }}"
+       path: "{{ file }}" 
