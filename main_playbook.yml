@@ -23,14 +23,14 @@
    - role: pb_sh_media
      tags: pb_sh_media
      throttle: 1
-   - role: pb_led
-     tags: pb_led
+   - role: pb_sh_filesystem
+     tags: pb_sh_filesystem
      throttle: 1
-   - role: ShowInstallActive
-     tags: ShowInstallActive
+   - role: ShowEnvPower
+     tags: ShowEnvPower
      throttle: 1
-   - role: ShowInstallCommit
-     tags: ShowInstallCommit
+   - role: pb_sh_controllers_fabric_plane_all
+     tags: pb_sh_controllers_fabric_plane_all
      throttle: 1
    - role: Summary
      tags: Summary
