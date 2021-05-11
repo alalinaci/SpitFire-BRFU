@@ -45,3 +45,28 @@ This project intends to run certain tests on iosxr routers and check if the cond
   * `./roles/Summary/tasks/main.yml` contains a playbook to clear the `output.txt` content after each test run, and push in new outputs after a successful run
   * `./roles/file/output.txt` contains the summary that needs to be printed towards the end, this file gets populated as the playbooks run, and is wiped out after its contents are displayed 
 
+
+## Leveraging custom genie parser based command check
+-  Pre-requisites
+   -  To be able to use the custom parsers defined in the forked repository, virtual environment has to be activated.
+      -  Create a virtual environment. `python3 -m venv .venv`
+      -  Activate the virtual environment. `source .venv/bin/activate`
+     
+   -  Some packages and libraries are needed to be installed and updated to work with the custom genie parsers. If pyats, genie, and clay584.parse_genie are already installed, then skip to third line.
+     ```
+     $ pip install pyats genie
+     $ ansible-galaxy install clay584.parse_genie
+     $ apt update 
+     $ pip install make
+     $ pip install pyats.contrib
+     ```
+     
+   -  Then [a forked repository genieparser](https://github.com/deepB123/genieparser.git)  has to be cloned which has the custom parsers. Create/Choose and enter a directory to keep the cloned repository before running the `git clone https://github.com/deepB123/genieparser.git` command. 
+     ```
+     $ cd genieparser
+     $ make develop
+     $ make json
+     ```
+   To verify, run `pip list` and check if `genie.libs.parser` has the location of the cloned genieparser.
+  
+   *To be used in same virtual environment as shared in the pre-requisites section under Leveraging custom genie parser based command check.*
