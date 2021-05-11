@@ -32,6 +32,15 @@
    - role: pb_sh_controllers_fabric_plane_all
      tags: pb_sh_controllers_fabric_plane_all
      throttle: 1
+   - role: pb_led
+     tags: pb_led
+     throttle: 1
+   - role: ShowInstallActive
+     tags: ShowInstallActive
+     throttle: 1
+   - role: ShowInstallCommit
+     tags: ShowInstallCommit
+     throttle: 1
    - role: Summary
      tags: Summary
      throttle: 1 
