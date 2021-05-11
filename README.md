@@ -96,6 +96,8 @@ This project intends to run certain tests on iosxr routers and check if the cond
   * genie-parser (`pip install genie-parser`)
 * Steps to Reproduce
   * Populate hosts file
+  * Populate `./roles/file/golden_output_active.txt` with the expected set of packages, in order to execute `show install active summary`
+  * Populate `./roles/file/golden_output_commit.txt` with the expected set of packages, in order to execute `show install commit summary`
   * Excute mainplaybook.yml using `ansible-playbook -i hosts main_playbook.yml`
 * Result
   * The above steps run a recap, showing output as "Passed" or "Failed" after each command test
